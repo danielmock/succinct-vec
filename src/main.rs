@@ -9,7 +9,7 @@ fn main() {
         println!("{}", a.read(i).unwrap());
     }
 
-    for i in 0..1000 {
+    for _ in 0..1000 {
         println!("{:?}", a.pop());
     }
 }

@@ -50,7 +50,6 @@ impl<T> BcdmsArray<T> {
             return None
         } 
         let (a,b) = BcdmsArray::<T>::locate(i);
-        println!("{}, {}", a,b);
         Some(&self.index[a][b])
     }
 
