@@ -21,6 +21,8 @@ pub struct BcdmsArray<T> {
     cap_last_super: usize, // capacity of super block (amount of data blocks)
 }
 
+pub struct IntoIter<T>(Box<Iterator<Item = T>>);
+
 impl<T> BcdmsArray<T> {
     pub fn new() -> BcdmsArray<T> {
         BcdmsArray {
@@ -34,6 +36,11 @@ impl<T> BcdmsArray<T> {
             len_last_super: 1,
             cap_last_super: 1,
         }
+    }
+
+    pub fn into_iter(self) -> impl Iterator<Item = T> {
+        self.index.into_iter()
+            .flat_map(|inner| inner.into_iter())
     }
 
     pub fn push(&mut self, value: T) {
@@ -141,9 +148,26 @@ impl<T> BcdmsArray<T> {
         let e = index & (usize::pow(2, l) - 1); // get the last ceil(k/2) bits of index+1
 
         // There is an error in the paper. The number of data blocks in super blocks prior to SB[k] is not 2^k - 1, since an SB[i] has 2^floor(k/2) data blocks, not 2^i
-        let p = usize::pow(2, (k + 1) / 2 + 1) - 2 - if k % 2 == 1 {usize::pow(2, (k-1)/2)} else {0}; 
-        
+        let p = usize::pow(2, (k + 1) / 2 + 1) - 2 - if k % 2 == 1 {usize::pow(2, (k-1)/2)} else {0};
+
         // return e-th element of DB[p+b]
         (p + b, e)
+    }
+}
+
+impl<T: 'static> IntoIterator for BcdmsArray<T> {
+    type Item = T;
+    type IntoIter = IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter(Box::new(self.into_iter()))
+    }
+}
+
+impl<T> Iterator for IntoIter<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
     }
 }
