@@ -146,4 +146,12 @@ impl<T> BcdmsArray<T> {
         // return e-th element of DB[p+b]
         (p + b, e)
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.index.iter().flat_map(|x| x.iter())
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
+        self.index.iter_mut().flat_map(|x| x.iter_mut())
+    }
 }
