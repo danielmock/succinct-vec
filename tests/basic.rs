@@ -1,3 +1,5 @@
+use rand::prelude::*;
+
 #[test]
 fn push_iter_pop() {
     let mut a = bcdms_array::BcdmsArray::default();
@@ -20,4 +22,27 @@ fn push_iter_pop() {
     }
 
     assert_eq!(a.pop(), None);
+}
+
+#[test]
+fn push_pop_vec_parity() {
+    // We push and pop a lot of random numbers
+    // and assert that our behavior is identical with Vec
+    let mut bcdms = bcdms_array::BcdmsArray::default();
+    let mut vec = Vec::default();
+    let mut rng = thread_rng();
+
+    for _ in 0..1000 {
+        if rng.gen() {
+            for _ in 0..rng.gen_range(0, 1000) {
+                let n = rng.gen::<u64>();
+                bcdms.push(n);
+                vec.push(n);
+            }
+        } else {
+            for _ in 0..rng.gen_range(0, 1000) {
+                assert_eq!(vec.pop(), bcdms.pop());
+            }
+        }
+    }
 }

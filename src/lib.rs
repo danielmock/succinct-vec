@@ -11,9 +11,6 @@ pub struct BcdmsArray<T> {
     // TODO Maybe replace with bool
     s: usize, // number of suberblocks
 
-    // TODO: maybe replace with call to index[d] or index.len
-    has_empty_data: bool, // the number of empty data blocks (there are atmost two)
-
     // TODO: replace it with vector calls do index[d-1]
     len_last_data: usize, // occupancy of last data block
     cap_last_data: usize, // size of last data block
@@ -55,12 +52,7 @@ impl<T> BcdmsArray<T> {
                 self.len_last_super = 0;
             }
 
-            if !self.has_empty_data {
-                // i manual resizing is unnecessary
-                self.index.push(Vec::with_capacity(self.cap_last_data));
-            } else {
-                self.has_empty_data = false;
-            }
+            self.index.push(Vec::with_capacity(self.cap_last_data));
 
             self.d += 1;
             self.len_last_super += 1;
@@ -82,15 +74,6 @@ impl<T> BcdmsArray<T> {
 
         // If DB[d-1] is empty
         if self.len_last_data == 0 {
-            // If there is another empty data block, it has to be at last position (DB[d]), remove it with pop
-            if self.has_empty_data {
-                let temp = self.index.pop();
-                assert!(match temp {
-                    None => true,
-                    Some(i) => i.is_empty(),
-                });
-            }
-
             // 2 b TODO reallocate index when quarter full???
 
             self.d -= 1;
@@ -180,7 +163,6 @@ impl<T> Default for BcdmsArray<T> {
             n: 0,
             s: 1,
             d: 1,
-            has_empty_data: false,
             len_last_data: 0,
             cap_last_data: 1,
             len_last_super: 1,
