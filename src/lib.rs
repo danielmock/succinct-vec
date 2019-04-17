@@ -21,8 +21,6 @@ pub struct BcdmsArray<T> {
     cap_last_super: usize, // capacity of super block (amount of data blocks)
 }
 
-pub struct IntoIter<T>(Box<Iterator<Item = T>>);
-
 impl<T> BcdmsArray<T> {
     pub fn new() -> BcdmsArray<T> {
         BcdmsArray {
@@ -167,19 +165,17 @@ impl<T> BcdmsArray<T> {
     }
 }
 
-impl<T: 'static> IntoIterator for BcdmsArray<T> {
+impl<T> IntoIterator for BcdmsArray<T> {
     type Item = T;
-    type IntoIter = IntoIter<T>;
+    type IntoIter = std::iter::FlatMap<
+        std::vec::IntoIter<Vec<T>>,
+        std::vec::IntoIter<T>,
+        fn(Vec<T>) -> <Vec<T> as IntoIterator>::IntoIter,
+    >;
 
     fn into_iter(self) -> Self::IntoIter {
-        IntoIter(Box::new(self.into_iter()))
-    }
-}
-
-impl<T> Iterator for IntoIter<T> {
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
+        self.index
+            .into_iter()
+            .flat_map(std::iter::IntoIterator::into_iter)
     }
 }
