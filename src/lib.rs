@@ -36,11 +36,6 @@ impl<T> BcdmsArray<T> {
         }
     }
 
-    pub fn into_iter(self) -> impl Iterator<Item = T> {
-        self.index.into_iter()
-            .flat_map(|inner| inner.into_iter())
-    }
-
     pub fn push(&mut self, value: T) {
         self.grow();
         self.index[self.d-1].push(value);
