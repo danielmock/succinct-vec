@@ -94,7 +94,7 @@ impl<T> BcdmsArray<T> {
             self.len_last_data = self.cap_last_data;
         }
 
-        return ret;
+        ret
     }
 
     fn locate(index: usize) -> (usize, usize) {
