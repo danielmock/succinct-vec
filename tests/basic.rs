@@ -1,6 +1,6 @@
 #[test]
 fn push_iter_pop() {
-    let mut a = bcdms_array::BcdmsArray::new();
+    let mut a = bcdms_array::BcdmsArray::default();
     
     for i in 0..10 {
         a.push(i);

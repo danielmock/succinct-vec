@@ -22,19 +22,6 @@ pub struct BcdmsArray<T> {
 }
 
 impl<T> BcdmsArray<T> {
-    pub fn new() -> BcdmsArray<T> {
-        BcdmsArray {
-            index: vec![Vec::with_capacity(1)],
-            n: 0,
-            s: 1,
-            d: 1,
-            has_empty_data: false,
-            len_last_data: 0,
-            cap_last_data: 1,
-            len_last_super: 1,
-            cap_last_super: 1,
-        }
-    }
 
     pub fn push(&mut self, value: T) {
         self.grow();
@@ -172,5 +159,21 @@ impl<T> IntoIterator for BcdmsArray<T> {
         self.index
             .into_iter()
             .flat_map(std::iter::IntoIterator::into_iter)
+    }
+}
+
+impl<T> Default for BcdmsArray<T> {
+    fn default() -> BcdmsArray<T> {
+        BcdmsArray {
+            index: vec![Vec::with_capacity(1)],
+            n: 0,
+            s: 1,
+            d: 1,
+            has_empty_data: false,
+            len_last_data: 0,
+            cap_last_data: 1,
+            len_last_super: 1,
+            cap_last_super: 1,
+        }
     }
 }
