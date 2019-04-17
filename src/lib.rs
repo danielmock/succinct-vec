@@ -125,13 +125,11 @@ impl<T> BcdmsArray<T> {
     }
 }
 
+type VecIter<T> = std::vec::IntoIter<T>;
+
 impl<T> IntoIterator for BcdmsArray<T> {
     type Item = T;
-    type IntoIter = std::iter::FlatMap<
-        std::vec::IntoIter<Vec<T>>,
-        std::vec::IntoIter<T>,
-        fn(Vec<T>) -> <Vec<T> as IntoIterator>::IntoIter,
-    >;
+    type IntoIter = std::iter::FlatMap<VecIter<Vec<T>>, VecIter<T>, fn(Vec<T>) -> VecIter<T>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.index
