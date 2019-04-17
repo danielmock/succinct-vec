@@ -30,6 +30,10 @@ impl<T> BcdmsArray<T> {
         self.shrink()
     }
 
+    pub fn len(&self) -> usize {
+        self.n
+    }
+
     pub fn read(&self, i: usize) -> Option<&T> {
         if i >= self.n {
             return None;

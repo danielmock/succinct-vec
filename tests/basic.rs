@@ -41,6 +41,7 @@ fn push_pop_vec_parity() {
             }
         } else {
             for _ in 0..rng.gen_range(0, 1000) {
+                assert_eq!(vec.len(), bcdms.len());
                 assert_eq!(vec.pop(), bcdms.pop());
             }
         }
