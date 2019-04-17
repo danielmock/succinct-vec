@@ -46,4 +46,11 @@ fn push_pop_vec_parity() {
             }
         }
     }
+
+    // test random access
+    // TODO: make this pass
+    for _ in 0..10000 {
+        let idx = rng.gen_range(0, bcdms.len());
+        assert_eq!(bcdms[idx], vec[idx]);
+    }
 }
