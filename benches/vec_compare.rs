@@ -116,3 +116,23 @@ fn index_rand_vec(b: &mut Bencher) {
         }
     });
 }
+
+#[bench]
+fn push_bcdms(b: &mut Bencher) {
+    b.iter(|| {
+        let mut bcdms = BcdmsArray::default();
+        for i in 0..BENCH_LEN {
+            black_box(bcdms.push(black_box(i)));
+        }
+    });
+}
+
+#[bench]
+fn push_vec(b: &mut Bencher) {
+    b.iter(|| {
+        let mut vec = Vec::default();
+        for i in 0..BENCH_LEN {
+            black_box(vec.push(black_box(i)));
+        }
+    });
+}
