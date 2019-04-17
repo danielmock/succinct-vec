@@ -138,17 +138,21 @@ impl<T> BcdmsArray<T> {
 
     fn locate(index: usize) -> (usize, usize) {
         let index = index + 1;
-        
-        let k = usize::max_value().count_ones() - index.leading_zeros() - 1; // size of index - 1
-        
+
+        let k = std::mem::size_of::<usize>()*8 - index.leading_zeros() as usize - 1; // size of index - 1
+
         let l = (k + 1) / 2; // ceil(k/2)
 
-        let b = (index & !usize::pow(2, k)) >> l;
+        let b = (index & !(1 << k)) >> l; // get the first floor(k/2) bits of index after the leading One
+        // remember that there are k bits after the leading 1 and that we have to cut off the last ceil(k/2) bits
 
-        let e = index & (usize::pow(2, l) - 1); // get the last ceil(k/2) bits of index+1
+        let e = index & ((1 << l) - 1); // get the last ceil(k/2) bits of index
 
-        // There is an error in the paper. The number of data blocks in super blocks prior to SB[k] is not 2^k - 1, since an SB[i] has 2^floor(k/2) data blocks, not 2^i
-        let p = usize::pow(2, (k + 1) / 2 + 1) - 2 - if k % 2 == 1 {usize::pow(2, (k-1)/2)} else {0};
+        // There is an error in the paper. The number of data blocks in super blocks prior to SB[k] is not 2^k - 1, since an SB[i] has 2^floor(i/2) data blocks, not 2^i
+        let p = 2*((1 << l)-1)
+            - (k % 2) * (
+                (1 << l)/2
+            );
 
         // return e-th element of DB[p+b]
         (p + b, e)
