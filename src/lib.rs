@@ -8,8 +8,8 @@ pub struct BcdmsArray<T> {
     n: usize, // number of elements
     d: usize, // the number of non-empty data blocks
 
-    // TODO Maybe replace with bool
-    s: usize, // number of suberblocks
+    // true iff number of superblocks is odd
+    s_odd: bool,
 
     // TODO: replace it with vector calls do index[d-1]
     len_last_data: usize, // occupancy of last data block
@@ -43,8 +43,8 @@ impl<T> BcdmsArray<T> {
         if self.cap_last_data == self.len_last_data {
             // a If the last superblock SB[s-1] is full
             if self.len_last_super == self.cap_last_super {
-                self.s += 1;
-                if self.s % 2 == 1 {
+                self.s_odd ^= true;
+                if self.s_odd {
                     self.cap_last_super *= 2;
                 } else {
                     self.cap_last_data *= 2;
@@ -80,12 +80,12 @@ impl<T> BcdmsArray<T> {
             self.len_last_super -= 1;
 
             if self.len_last_super == 0 {
-                self.s -= 1;
+                self.s_odd ^= true;
 
-                if self.s % 2 == 0 {
-                    self.cap_last_super /= 2;
-                } else {
+                if self.s_odd {
                     self.cap_last_data /= 2;
+                } else {
+                    self.cap_last_super /= 2;
                 }
 
                 self.len_last_super = self.cap_last_super;
@@ -161,7 +161,7 @@ impl<T> Default for BcdmsArray<T> {
         BcdmsArray {
             index: vec![Vec::with_capacity(1)],
             n: 0,
-            s: 1,
+            s_odd: true,
             d: 1,
             len_last_data: 0,
             cap_last_data: 1,
