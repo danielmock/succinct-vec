@@ -2,5 +2,6 @@
 name = "bcdms-array"
 version = "0.1.0"
 authors = ["Daniel A. Mock <qwertz120@gmail.com>"]
+edition = "2018"
 
 [dependencies]
