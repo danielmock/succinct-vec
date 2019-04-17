@@ -4,7 +4,7 @@ fn push_iter_pop() {
     
     for i in 0..10 {
         a.push(i);
-        assert_eq!(a.read(i).unwrap(), &i);
+        assert_eq!(a[i], i);
     }
 
     for element in a.iter_mut() {

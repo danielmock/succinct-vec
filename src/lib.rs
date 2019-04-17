@@ -1,3 +1,5 @@
+use std::ops::{Index, IndexMut};
+
 #[derive(Debug, Clone)]
 pub struct BcdmsArray<T> {
     index: Vec<Vec<T>>, // the index pointing to the data blocks,
@@ -159,6 +161,22 @@ impl<T> IntoIterator for BcdmsArray<T> {
         self.index
             .into_iter()
             .flat_map(std::iter::IntoIterator::into_iter)
+    }
+}
+
+impl<T> Index<usize> for BcdmsArray<T> {
+    type Output = T;
+
+    fn index(&self, i: usize) -> &T {
+        let (a,b) = BcdmsArray::<T>::locate(i);
+        &self.index[a][b]
+    }
+}
+
+impl<T> IndexMut<usize> for BcdmsArray<T> {
+    fn index_mut(&mut self, i: usize) -> &mut T {
+        let (a,b) = BcdmsArray::<T>::locate(i);
+        &mut self.index[a][b]
     }
 }
 
