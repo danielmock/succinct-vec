@@ -5,3 +5,7 @@ authors = ["Daniel A. Mock <qwertz120@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+
+[dev-dependencies]
+rand = "0.6.5"
+lazy_static = "1.3.0"
