@@ -3,9 +3,9 @@ extern crate test;
 
 use test::{black_box, Bencher};
 
+use bcdms_array::BcdmsArray;
 use lazy_static::lazy_static;
 use rand::prelude::*;
-use bcdms_array::BcdmsArray;
 
 const BENCH_LEN: usize = 1_000_000;
 
@@ -41,21 +41,16 @@ lazy_static! {
     };
 }
 
-
 #[bench]
 fn clone_bcdms(b: &mut Bencher) {
     let bcdms = &*TEST_BCDMS;
-    b.iter(|| {
-        black_box(black_box(bcdms).clone())
-    });
+    b.iter(|| black_box(black_box(bcdms).clone()));
 }
 
 #[bench]
 fn clone_vec(b: &mut Bencher) {
     let vec = &*TEST_VEC;
-    b.iter(|| {
-        black_box(black_box(vec).clone())
-    });
+    b.iter(|| black_box(black_box(vec).clone()));
 }
 
 #[bench]
