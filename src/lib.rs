@@ -134,7 +134,7 @@ impl<T> IntoIterator for BcdmsArray<T> {
     fn into_iter(self) -> Self::IntoIter {
         self.index
             .into_iter()
-            .flat_map(std::iter::IntoIterator::into_iter)
+            .flat_map(IntoIterator::into_iter)
     }
 }
 
