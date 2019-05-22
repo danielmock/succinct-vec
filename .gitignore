@@ -11,3 +11,7 @@
 /target/
 
 Cargo\.lock
+
+\.idea/
+
+BCDMS-Array\.iml

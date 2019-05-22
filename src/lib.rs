@@ -11,10 +11,6 @@ pub struct BcdmsArray<T> {
     // true iff number of superblocks is odd
     s_odd: bool,
 
-    // TODO: replace it with vector calls do index[d-1]
-    len_last_data: usize, // occupancy of last data block
-    cap_last_data: usize, // size of last data block
-
     // Definitely needed IMO
     len_last_super: usize, // length of super block (amount of data blocks)
     cap_last_super: usize, // capacity of super block (amount of data blocks)
@@ -44,27 +40,31 @@ impl<T> BcdmsArray<T> {
 
     fn grow(&mut self) {
         // 1. If the last nonempty data block DB[d-1] is full
-        if self.cap_last_data == self.len_last_data {
-            // a If the last superblock SB[s-1] is full
-            if self.len_last_super == self.cap_last_super {
-                self.s_odd ^= true;
-                if self.s_odd {
-                    self.cap_last_super *= 2;
-                } else {
-                    self.cap_last_data *= 2;
+        let mut cap = self.index[self.d - 1].capacity();
+        if self.index[self.d - 1].len() == cap {
+            // (b) If there are no empty data blocks
+            // NOTE: Here we only change the capacity and length of the last superblock only if there is no additional empty data block!
+            // This has to be kept consistent with the implementation in shrink too.
+            if self.index.len() == self.d {
+                // (a) If the last superblock SB[s-1] is full, add a new virtual superblock
+                if self.len_last_super == self.cap_last_super {
+                    self.s_odd = !self.s_odd;
+                    if self.s_odd {
+                        self.cap_last_super *= 2;
+                    } else {
+                        cap *= 2;
+                    }
+                    self.len_last_super = 0;
                 }
-                self.len_last_super = 0;
-            }
 
-            self.index.push(Vec::with_capacity(self.cap_last_data));
+                // push a new data block (the index block resizes by itself)
+                self.index.push(Vec::with_capacity(cap));
+            }
 
             self.d += 1;
             self.len_last_super += 1;
-            self.len_last_data = 0;
         }
-
         self.n += 1;
-        self.len_last_data += 1;
     }
 
     fn shrink(&mut self) -> Option<T> {
@@ -72,33 +72,25 @@ impl<T> BcdmsArray<T> {
             return None;
         }
 
-        self.n -= 1;
-        self.len_last_data -= 1;
-        let ret = self.index[self.d - 1].pop();
-
-        // If DB[d-1] is empty
-        if self.len_last_data == 0 {
-            // 2 b TODO reallocate index when quarter full???
-
+        // 2. If DB[d-1] is empty
+        if self.index[self.d - 1].len() == 0 {
+            if self.index.len() != self.d {
+                self.index.pop();
+                // 2 b TODO reallocate index when quarter full???
+                if self.len_last_super == 0 {
+                    self.s_odd = !self.s_odd;
+                    if !self.s_odd {
+                        self.cap_last_super /= 2;
+                    }
+                    self.len_last_super = self.cap_last_super;
+                }
+            }
             self.d -= 1;
             self.len_last_super -= 1;
-
-            if self.len_last_super == 0 {
-                self.s_odd ^= true;
-
-                if self.s_odd {
-                    self.cap_last_data /= 2;
-                } else {
-                    self.cap_last_super /= 2;
-                }
-
-                self.len_last_super = self.cap_last_super;
-            }
-
-            self.len_last_data = self.cap_last_data;
         }
 
-        ret
+        self.n -= 1;
+        self.index[self.d - 1].pop()
     }
 
     fn locate(index: usize) -> (usize, usize) {
@@ -163,8 +155,6 @@ impl<T> Default for BcdmsArray<T> {
             n: 0,
             s_odd: true,
             d: 1,
-            len_last_data: 0,
-            cap_last_data: 1,
             len_last_super: 1,
             cap_last_super: 1,
         }

@@ -32,7 +32,7 @@ fn push_pop_vec_parity() {
     let mut vec = Vec::default();
     let mut rng = thread_rng();
 
-    for _ in 0..1000 {
+    for _ in 0..10000 {
         if rng.gen() {
             for _ in 0..rng.gen_range(0, 1000) {
                 let n = rng.gen::<u64>();
