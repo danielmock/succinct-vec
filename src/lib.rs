@@ -30,11 +30,11 @@ impl<T> BcdmsArray<T> {
         self.n
     }
 
-    pub fn read(&self, i: usize) -> Option<&T> {
-        if i >= self.n {
+    pub fn read(&self, index: usize) -> Option<&T> {
+        if index >= self.n {
             return None;
         }
-        let (a, b) = BcdmsArray::<T>::locate(i);
+        let (a, b) = BcdmsArray::<T>::locate(index);
         Some(&self.index[a][b])
     }
 
@@ -118,6 +118,57 @@ impl<T> BcdmsArray<T> {
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
         self.index.iter_mut().flat_map(|x| x.iter_mut())
+    }
+
+    pub fn insert(&mut self, index: usize, element: T) {
+        let (a, b) = BcdmsArray::<T>::locate(index);
+
+        // We move the last element of a data block to the first position of the next data block, from back to front to prevent the data blocks from growing
+        self.grow();
+        for data_block in (a+1..self.d).rev() {
+            let elem_to_move = self.index[data_block - 1].pop().unwrap();
+            self.index[data_block].insert(0, elem_to_move);
+        }
+    
+        let cap = self.index[a].capacity();
+        self.index[a].insert(b, element);
+        assert_eq!(cap, self.index[a].capacity());
+    }
+
+    pub fn remove(&mut self, index: usize) -> T {
+        let (a, b) = BcdmsArray::<T>::locate(index);
+        let result = self.index[a].remove(b);
+
+        for block in a+1..self.d-1 {
+            let temp = self.index[block].remove(0);
+            self.index[block - 1].push(temp);
+        }
+        if !self.index[self.d - 1].is_empty() {
+            let temp = self.index[self.d - 1].remove(0);
+            self.index[self.d - 2].push(temp);
+            self.index[self.d - 1].push(result);
+        } else {
+            self.index[self.d - 2].push(result);
+        }
+
+        self.shrink().unwrap()
+    }
+
+    
+    pub fn simple_sanity_check(&self) {
+        // We count the number of elements in the vectors and we check that every vector except the last one(s) are full
+        let length = self.index.iter().map(|vec| vec.len()).sum();
+        let result = self.len() == length;
+        assert!(result);
+
+        for i in 0..self.d-1 {
+            assert_eq!(self.index[i].capacity(), self.index[i].len());
+        }
+
+        if self.index.len() > self.d {
+            assert_eq!(self.index.len(), self.d+1);
+            assert!(self.index[self.d].is_empty());
+        }
     }
 }
 
