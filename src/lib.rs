@@ -6,7 +6,6 @@ pub struct BcdmsArray<T> {
 
     // TODO: maybe compute ad hoc, could be quite expensive (high constant)
     n: usize, // number of elements
-    d: usize, // the number of non-empty data blocks
 
     // true iff number of superblocks is odd
     s_odd: bool,
@@ -14,12 +13,14 @@ pub struct BcdmsArray<T> {
     // Definitely needed IMO
     len_last_super: usize, // length of super block (amount of data blocks)
     cap_last_super: usize, // capacity of super block (amount of data blocks)
+
+    empty_data_block: Option<Vec<T>>
 }
 
 impl<T> BcdmsArray<T> {
     pub fn push(&mut self, value: T) {
         self.grow();
-        self.index[self.d - 1].push(value);
+        self.index.last_mut().unwrap().push(value);
     }
 
     pub fn pop(&mut self) -> Option<T> {
@@ -28,6 +29,14 @@ impl<T> BcdmsArray<T> {
 
     pub fn len(&self) -> usize {
         self.n
+    }
+    
+    pub fn is_empty(&self) -> bool {
+        self.n == 0
+    }
+
+    pub fn capacity(&self) -> usize {
+        self.n - self.index.last().unwrap().len() + self.index.last().unwrap().capacity()
     }
 
     pub fn read(&self, index: usize) -> Option<&T> {
@@ -39,32 +48,37 @@ impl<T> BcdmsArray<T> {
     }
 
     fn grow(&mut self) {
-        // 1. If the last nonempty data block DB[d-1] is full
-        let mut cap = self.index[self.d - 1].capacity();
-        if self.index[self.d - 1].len() == cap {
-            // (b) If there are no empty data blocks
-            // NOTE: Here we only change the capacity and length of the last superblock only if there is no additional empty data block!
-            // This has to be kept consistent with the implementation in shrink too.
-            if self.index.len() == self.d {
-                // (a) If the last superblock SB[s-1] is full, add a new virtual superblock
-                if self.len_last_super == self.cap_last_super {
-                    self.s_odd = !self.s_odd;
-                    if self.s_odd {
-                        self.cap_last_super *= 2;
-                    } else {
-                        cap *= 2;
-                    }
-                    self.len_last_super = 0;
-                }
+        self.n += 1;
 
-                // push a new data block (the index block resizes by itself)
-                self.index.push(Vec::with_capacity(cap));
+        // 1. If the last nonempty data block DB[d-1] is full
+        if self.index.is_empty() {
+            self.len_last_super += 1;
+            self.cap_last_super = 1;
+            self.s_odd = true;
+            self.index.push(self.empty_data_block.take().unwrap());
+            return;
+        }
+        if self.index.last().unwrap().capacity() == self.index.last().unwrap().len() {
+            let mut cap = self.index.last().unwrap().capacity();
+            // (a) If the last superblock SB[s-1] is full, add a new virtual superblock
+            if self.len_last_super == self.cap_last_super {
+                self.s_odd = !self.s_odd;
+                if self.s_odd {
+                    self.cap_last_super *= 2;
+                } else {
+                    cap *= 2;
+                }
+                self.len_last_super = 0;
+            }
+            self.len_last_super += 1;
+
+            // (b) If there are no empty data blocks
+            match self.empty_data_block.take() {
+                Some(x) => {  self.index.push(x); }, 
+                None => { self.index.push(Vec::with_capacity(cap)); },
             }
 
-            self.d += 1;
-            self.len_last_super += 1;
         }
-        self.n += 1;
     }
 
     fn shrink(&mut self) -> Option<T> {
@@ -72,25 +86,24 @@ impl<T> BcdmsArray<T> {
             return None;
         }
 
+        let result = self.index.last_mut().unwrap().pop();
         // 2. If DB[d-1] is empty
-        if self.index[self.d - 1].len() == 0 {
-            if self.index.len() != self.d {
-                self.index.pop();
-                // 2 b TODO reallocate index when quarter full???
-                if self.len_last_super == 0 {
-                    self.s_odd = !self.s_odd;
-                    if !self.s_odd {
-                        self.cap_last_super /= 2;
-                    }
-                    self.len_last_super = self.cap_last_super;
-                }
-            }
-            self.d -= 1;
+        if self.index.last().unwrap().is_empty() {
+            // Overwrite the empty_data_block with the new one
+            self.empty_data_block = self.index.pop();
             self.len_last_super -= 1;
+                // 2 b TODO reallocate index when quarter full???
+            if self.len_last_super == 0 {
+                self.s_odd = !self.s_odd;
+                if !self.s_odd {
+                    self.cap_last_super /= 2;
+                }
+                self.len_last_super = self.cap_last_super;
+            }
         }
 
         self.n -= 1;
-        self.index[self.d - 1].pop()
+        result
     }
 
     fn locate(index: usize) -> (usize, usize) {
@@ -125,7 +138,7 @@ impl<T> BcdmsArray<T> {
 
         // We move the last element of a data block to the first position of the next data block, from back to front to prevent the data blocks from growing
         self.grow();
-        for data_block in (a+1..self.d).rev() {
+        for data_block in (a+1..self.index.len()).rev() {
             let elem_to_move = self.index[data_block - 1].pop().unwrap();
             self.index[data_block].insert(0, elem_to_move);
         }
@@ -139,36 +152,30 @@ impl<T> BcdmsArray<T> {
         let (a, b) = BcdmsArray::<T>::locate(index);
         let result = self.index[a].remove(b);
 
-        for block in a+1..self.d-1 {
+        for block in a+1..self.index.len() {
             let temp = self.index[block].remove(0);
             self.index[block - 1].push(temp);
         }
-        if !self.index[self.d - 1].is_empty() {
-            let temp = self.index[self.d - 1].remove(0);
-            self.index[self.d - 2].push(temp);
-            self.index[self.d - 1].push(result);
-        } else {
-            self.index[self.d - 2].push(result);
-        }
+        self.index.last_mut().unwrap().push(result);
 
         self.shrink().unwrap()
     }
 
     
     pub fn simple_sanity_check(&self) {
+        if self.is_empty() {
+            return;
+        }
         // We count the number of elements in the vectors and we check that every vector except the last one(s) are full
         let length = self.index.iter().map(|vec| vec.len()).sum();
         let result = self.len() == length;
         assert!(result);
 
-        for i in 0..self.d-1 {
-            assert_eq!(self.index[i].capacity(), self.index[i].len());
+        for idx in 0..self.index.len() - 1 {
+            let vec = &self.index[idx];
+            assert_eq!(vec.capacity(), vec.len());
         }
 
-        if self.index.len() > self.d {
-            assert_eq!(self.index.len(), self.d+1);
-            assert!(self.index[self.d].is_empty());
-        }
     }
 }
 
@@ -202,12 +209,12 @@ impl<T> IndexMut<usize> for BcdmsArray<T> {
 impl<T> Default for BcdmsArray<T> {
     fn default() -> BcdmsArray<T> {
         BcdmsArray {
-            index: vec![Vec::with_capacity(1)],
+            index: Vec::new(),
             n: 0,
             s_odd: true,
-            d: 1,
-            len_last_super: 1,
+            len_last_super: 0,
             cap_last_super: 1,
+            empty_data_block: Some(Vec::with_capacity(1)),
         }
     }
 }

@@ -6,6 +6,7 @@ fn push_iter_pop() {
 
     for i in 0..10 {
         a.push(i);
+        println!("{:?}", a);
         assert_eq!(a[i], i);
     }
 
@@ -19,6 +20,7 @@ fn push_iter_pop() {
 
     for i in 0..10 {
         assert_eq!(a.pop().unwrap(), 10 - i);
+        println!("{:?}", a);
     }
 
     assert_eq!(a.pop(), None);
@@ -32,15 +34,15 @@ fn push_pop_vec_parity() {
     let mut vec = Vec::default();
     let mut rng = thread_rng();
 
-    for _ in 0..10000 {
+    for _ in 0..100 {
         if rng.gen() {
-            for _ in 0..rng.gen_range(0, 1000) {
-                let n = rng.gen::<u64>();
+            for _ in 0..rng.gen_range(0, 100) {
+                let n = rng.gen_range(0, 900);
                 bcdms.push(n);
                 vec.push(n);
             }
         } else {
-            for _ in 0..rng.gen_range(0, 1000) {
+            for _ in 0..rng.gen_range(0, 100) {
                 assert_eq!(vec.len(), bcdms.len());
                 assert_eq!(vec.pop(), bcdms.pop());
             }
@@ -48,10 +50,27 @@ fn push_pop_vec_parity() {
     }
 
     // test random access
-    for _ in 0..10000 {
-        let idx = rng.gen_range(0, bcdms.len());
+    for idx in 0..bcdms.len() {
         assert_eq!(bcdms[idx], vec[idx]);
     }
+
+    println!("{:?}", bcdms);
+}
+
+#[test]
+fn push_pop_push() {
+    let mut bcdms = bcdms_array::BcdmsArray::default();
+    for i in 0..10 {
+        bcdms.push(i);
+    }
+    println!("{:?}", bcdms);
+    for _ in 0..10 {
+        bcdms.pop();
+    }
+    for i in 0..10 {
+        bcdms.push(i);
+    }
+    println!("{:?}", bcdms);
 }
 
 #[test]
@@ -64,7 +83,6 @@ fn insert_front() {
         vec.insert(0, idx);
     }
 
-    
     assert_eq!(bcdms2vec(bcdms), vec);
 }
 
