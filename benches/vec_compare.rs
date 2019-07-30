@@ -3,7 +3,7 @@ extern crate test;
 
 use test::{black_box, Bencher};
 
-use bcdms_array::SuccinctVec;
+use succinct_vec::SuccinctVec;
 use lazy_static::lazy_static;
 use rand::prelude::*;
 
