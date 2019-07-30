@@ -1,7 +1,14 @@
 [package]
 name = "succinct_vec"
 version = "0.1.0"
-authors = ["Daniel A. Mock <qwertz120@gmail.com>"]
+license = "MIT"
+authors = ["Daniel Mock <qwertz120@gmail.com>"]
+description = "A Vec-like datastructure with less memory overhead"
+homepage = "https://github.com/danielmock/succinct-vec"
+repository = "https://github.com/danielmock/succinct-vec"
+readme = "README.md"
+keywords = ["data-structures", "vec", "stack"]
+categories = ["algorithms", "data-structures"]
 edition = "2018"
 
 [dependencies]
