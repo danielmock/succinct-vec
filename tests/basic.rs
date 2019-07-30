@@ -2,7 +2,7 @@ use rand::prelude::*;
 
 #[test]
 fn push_iter_pop() {
-    let mut a = bcdms_array::BcdmsArray::default();
+    let mut a = bcdms_array::SuccinctVec::default();
 
     for i in 0..10 {
         a.push(i);
@@ -30,7 +30,7 @@ fn push_iter_pop() {
 fn push_pop_vec_parity() {
     // We push and pop a lot of random numbers
     // and assert that our behavior is identical with Vec
-    let mut bcdms = bcdms_array::BcdmsArray::default();
+    let mut bcdms = bcdms_array::SuccinctVec::default();
     let mut vec = Vec::default();
     let mut rng = thread_rng();
 
@@ -59,7 +59,7 @@ fn push_pop_vec_parity() {
 
 #[test]
 fn push_pop_push() {
-    let mut bcdms = bcdms_array::BcdmsArray::default();
+    let mut bcdms = bcdms_array::SuccinctVec::default();
     for i in 0..10 {
         bcdms.push(i);
     }
@@ -75,7 +75,7 @@ fn push_pop_push() {
 
 #[test]
 fn insert_front() {
-    let mut bcdms = bcdms_array::BcdmsArray::default();
+    let mut bcdms = bcdms_array::SuccinctVec::default();
     let mut vec = Vec::default();
 
     for idx in 0..10000 {
@@ -88,7 +88,7 @@ fn insert_front() {
 
 #[test]
 fn remove_front() {
-    let mut bcdms = bcdms_array::BcdmsArray::default();
+    let mut bcdms = bcdms_array::SuccinctVec::default();
     for i in 0..1000 {
         bcdms.push(i);
     }
@@ -100,7 +100,7 @@ fn remove_front() {
 
 #[test]
 fn rand_remove() {
-    let mut bcdms = bcdms_array::BcdmsArray::default();
+    let mut bcdms = bcdms_array::SuccinctVec::default();
     let mut vec = Vec::default();
     let mut rng = thread_rng();
 
@@ -118,7 +118,7 @@ fn rand_remove() {
 
 #[test]
 fn insert_back() {
-    let mut bcdms = bcdms_array::BcdmsArray::default();
+    let mut bcdms = bcdms_array::SuccinctVec::default();
     let mut vec = Vec::default();
 
     for i in 0..1000 {
@@ -129,7 +129,7 @@ fn insert_back() {
 
 #[test]
 fn rand_insert() {
-    let mut bcdms = bcdms_array::BcdmsArray::default();
+    let mut bcdms = bcdms_array::SuccinctVec::default();
     let mut vec = Vec::default();
     let mut rng = thread_rng();
 
@@ -144,7 +144,7 @@ fn rand_insert() {
 
 #[test]
 fn rand_insert_remove() {
-    let mut bcdms = bcdms_array::BcdmsArray::default();
+    let mut bcdms = bcdms_array::SuccinctVec::default();
     let mut vec = Vec::default();
     let mut rng = thread_rng();
 
@@ -177,7 +177,7 @@ fn rand_insert_remove() {
     assert_eq!(bcdms2vec(bcdms), vec);
 }
 
-fn bcdms2vec<T: Copy>(bcdms: bcdms_array::BcdmsArray<T>) -> Vec<T> {
+fn bcdms2vec<T: Copy>(bcdms: bcdms_array::SuccinctVec<T>) -> Vec<T> {
     let mut result = Vec::new();
     for x in bcdms.iter() {
         result.push(*x);

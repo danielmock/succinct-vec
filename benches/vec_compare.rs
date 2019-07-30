@@ -3,15 +3,15 @@ extern crate test;
 
 use test::{black_box, Bencher};
 
-use bcdms_array::BcdmsArray;
+use bcdms_array::SuccinctVec;
 use lazy_static::lazy_static;
 use rand::prelude::*;
 
 const BENCH_LEN: usize = 1_000_000;
 
 lazy_static! {
-    static ref TEST_BCDMS : BcdmsArray<usize> = {
-        let mut bcdms = BcdmsArray::default();
+    static ref TEST_BCDMS : SuccinctVec<usize> = {
+        let mut bcdms = SuccinctVec::default();
 
         for i in 0..BENCH_LEN {
             bcdms.push(i);
@@ -120,7 +120,7 @@ fn index_rand_vec(b: &mut Bencher) {
 #[bench]
 fn push_bcdms(b: &mut Bencher) {
     b.iter(|| {
-        let mut bcdms = BcdmsArray::default();
+        let mut bcdms = SuccinctVec::default();
         for i in 0..BENCH_LEN {
             black_box(bcdms.push(black_box(i)));
         }
