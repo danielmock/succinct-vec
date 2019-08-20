@@ -248,10 +248,11 @@ impl<T> SuccinctVec<T> {
 }
 
 type VecIter<T> = std::vec::IntoIter<T>;
+pub type SuccinctIter<T> = std::iter::FlatMap<VecIter<Vec<T>>, VecIter<T>, fn(Vec<T>) -> VecIter<T>>;
 
 impl<T> IntoIterator for SuccinctVec<T> {
     type Item = T;
-    type IntoIter = std::iter::FlatMap<VecIter<Vec<T>>, VecIter<T>, fn(Vec<T>) -> VecIter<T>>;
+    type IntoIter = SuccinctIter<T>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.data_blocks.into_iter().flat_map(IntoIterator::into_iter)
